@@ -1,0 +1,4 @@
+RAG = Retrieval Augmented Generation.
+Steps: 1) Chunk docs 2) Embed to vectors 3) Store in vector DB 4) Retrieve relevant chunks 5) LLM answers using chunks.
+Benefits: No hallucination, up-to-date with your data, cheap.
+In 2026, RAG is used with Agents = Agentic RAG.

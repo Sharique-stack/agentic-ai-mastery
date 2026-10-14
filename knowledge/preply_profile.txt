@@ -1,0 +1,3 @@
+I am a Data Science tutor on Preply. I teach Python, Machine Learning, RAG, Agentic AI.
+My rate is $7/lesson. Available all days 5pm-12am IST.
+Speciality: Breaking complex AI topics into 30-day builds.
