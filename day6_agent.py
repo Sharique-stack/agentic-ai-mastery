@@ -2,6 +2,13 @@ import os, streamlit as st
 from dotenv import load_dotenv
 load_dotenv()
 
+import streamlit as st
+# For Streamlit Cloud deployment
+if "GROQ_API_KEY" in st.secrets:
+    os.environ["GROQ_API_KEY"] = st.secrets["GROQ_API_KEY"]
+if "TAVILY_API_KEY" in st.secrets:
+    os.environ["TAVILY_API_KEY"] = st.secrets["TAVILY_API_KEY"]
+
 from langchain_groq import ChatGroq
 from langchain_core.tools import tool
 from langchain.agents import create_agent
