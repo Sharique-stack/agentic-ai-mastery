@@ -42,7 +42,7 @@ def save_lead(name, doubt, thread_id):
 
 @tool
 def check_availability(requested_time: str) -> str:
-    """Check if Sharique is available. My Preply hours: 12am-11:59am IST."""
+    """Check if Sharique is available. My Preply hours: 12am-11:59pm IST."""
     return f"Available at {requested_time} within 12am-11:59am IST. Confirm booking at https://preply.in/MOHAMMAD6EN21972784102?ts=17923314 and calendar invite will be sent."
 
 @tool
