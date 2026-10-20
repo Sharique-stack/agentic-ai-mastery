@@ -43,7 +43,7 @@ def save_lead(name, doubt, thread_id):
 @tool
 def check_availability(requested_time: str) -> str:
     """Check if Sharique is available. My Preply hours: 12am-11:59pm IST."""
-    return f"Available at {requested_time} within 12am-11:59am IST. Confirm booking at https://preply.in/MOHAMMAD6EN21972784102?ts=17923314 and calendar invite will be sent."
+    return f"Available at {requested_time} within 12am-11:59pm IST. Confirm booking at https://preply.in/MOHAMMAD6EN21972784102?ts=17923314 and calendar invite will be sent."
 
 @tool
 def create_booking(student_name: str, time: str) -> str:
@@ -92,7 +92,7 @@ with st.sidebar:
     thread_id = f"student-{student_name.lower()}"
     st.code(f"Thread: {thread_id}")
     st.divider()
-    st.write("**My Preply:** $7/lesson, 12am-11:59am IST")
+    st.write("**My Preply:** $7/lesson, 12am-11:59pm IST")
     st.link_button("📅 Book Live 1:1 on Preply", "https://preply.in/MOHAMMAD6EN21972784102?ts=17923314")
     st.divider()
     st.write("**Stack:** Groq + Tavily + Chroma + LangGraph")
