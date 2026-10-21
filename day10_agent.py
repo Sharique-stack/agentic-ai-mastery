@@ -60,7 +60,7 @@ def check_availability(requested_time: str) -> str:
     try:
         service = get_calendar_service()
         if not service:
-            return f"Calendar API not connected, but generally available 12am-11:59am IST. Proceed to booking at https://preply.in/MOHAMMAD6EN21972784102?ts=17923314"
+            return f"Calendar API not connected, but generally available 12am-12am IST. Proceed to booking at https://preply.in/MOHAMMAD6EN21972784102?ts=17923314"
         start = dt.datetime.fromisoformat(requested_time)
         end = start + timedelta(hours=1)
         body = {
@@ -71,7 +71,7 @@ def check_availability(requested_time: str) -> str:
         freebusy = service.freebusy().query(body=body).execute()
         busy = freebusy["calendars"][CALENDAR_ID]["busy"]
         if busy:
-            return f"Busy at {requested_time}. Try another slot between 12am-11:59am IST."
+            return f"Busy at {requested_time}. Try another slot between 12am-12am IST."
         return f"Free at {requested_time}. Ready to book."
     except Exception as e:
         return f"Available 12am-11:59am IST. Calendar check note: {e}"
