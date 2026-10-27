@@ -13,7 +13,25 @@ import json
 
 app = FastAPI()
 llm = ChatGroq(model="openai/gpt-oss-20b", temperature=0.4)
+import re
 
+def whatsapp_cleaner(text: str) -> str:
+    """Convert AI markdown to WhatsApp-friendly text"""
+    # Remove tables
+    text = re.sub(r'\|.*\|', '', text)
+    text = text.replace('---', '')
+    # Convert **bold** to *bold* (WhatsApp style)
+    text = re.sub(r'\*\*(.*?)\*\*', r'*\1*', text)
+    # Remove ## headers
+    text = re.sub(r'^#{1,6}\s*', '', text, flags=re.MULTILINE)
+    # Remove "Read more" cut-offs
+    text = text.replace('Read more', '')
+    # Limit to 4-5 short lines, add emojis
+    text = text.strip()
+    # Ensure max 800 chars for WhatsApp
+    if len(text) > 800:
+        text = text[:780] + "...\n\nType *more* for details"
+    return text
 def get_calendar_service():
     try:
         raw = os.getenv("GOOGLE_TOKEN")

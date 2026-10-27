@@ -51,3 +51,10 @@ google-auth
 google-auth-oauthlib
 twilio
 pydantic
+fastapi
+uvicorn
+langchain-groq
+groq
+python-dotenv
+twilio
+requests
