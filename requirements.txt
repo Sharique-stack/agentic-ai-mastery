@@ -57,4 +57,11 @@ langchain-groq
 groq
 python-dotenv
 twilio
+requestsfastapi
+uvicorn
+langchain-groq
+groq
+python-dotenv
+twilio
 requests
+gtts
