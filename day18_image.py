@@ -41,4 +41,4 @@ def generate_agentic_diagram(topic: str) -> str:
 # Test
 if __name__ == "__main__":
     url = generate_agentic_diagram("LangGraph supervisor pattern")
-    print(url)q
+    print(url)
