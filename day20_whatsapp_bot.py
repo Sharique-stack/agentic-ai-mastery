@@ -1,4 +1,4 @@
-# day20_whatsapp_bot.py - Day 20 SAFE version
+# day20_whatsapp_bot.py - Day 20 FIXED
 from fastapi import FastAPI, Request
 from fastapi.responses import PlainTextResponse, HTMLResponse, JSONResponse
 from twilio.twiml.messaging_response import MessagingResponse
@@ -8,7 +8,6 @@ load_dotenv()
 
 app = FastAPI()
 
-# --- Safe imports ---
 try:
     from langchain_groq import ChatGroq
     from groq import Groq
@@ -16,7 +15,7 @@ try:
     from day20_analytics import get_dashboard_stats, get_student_detail
     HAS_GROQ = bool(os.getenv("GROQ_API_KEY"))
     if HAS_GROQ:
-        llm = ChatGroq(model="llama-3.1-8b-instant", temperature=0.3)  # Stable model
+        llm = ChatGroq(model="llama-3.1-8b-instant", temperature=0.3)
         groq_client = Groq(api_key=os.getenv("GROQ_API_KEY"))
     else:
         llm = None
@@ -26,12 +25,13 @@ except Exception as e:
     HAS_GROQ = False
     llm = None
     groq_client = None
-    # Fallback import for analytics only
     try:
         from day20_analytics import get_dashboard_stats, get_student_detail
         from day20_memory import get_memory_context, update_student_profile
     except:
-        pass
+        def get_dashboard_stats(): return {"total_students":0,"total_sessions":0,"active_today":0,"modality":{"visual":0,"voice":0,"text":0,"visual_pct":0},"topics":[],"media_stats":{"images_sent":0,"images_received":0,"voice_notes":0},"top_students":[]}
+        def get_memory_context(p): return "New"
+        def update_student_profile(*a,**k): pass
 
 def transcribe_audio(media_url, auth):
     if not groq_client: return ""
@@ -46,7 +46,7 @@ def transcribe_audio(media_url, auth):
     except: return ""
 
 def analyze_image(media_url, auth, txt=""):
-    if not groq_client: return "Image received - vision needs GROQ_API_KEY"
+    if not groq_client: return "Image received"
     try:
         r = requests.get(media_url, auth=auth, timeout=20)
         b64 = base64.b64encode(r.content).decode('utf-8')
@@ -71,15 +71,31 @@ def gen_diagram(topic: str):
 
 def cleaner(t): return re.sub(r'\*\*(.*?)\*\*', r'*\1*', re.sub(r'\|.*\|','',t)).strip()[:1000]
 
-KB="Agentic AI=agents+tools+memory. LangGraph=multi-agent graph. RAG=retrieve+generate. MCP=connect LLM to tools."
-
 @app.get("/", response_class=HTMLResponse)
 async def dashboard_home():
     try:
         stats = get_dashboard_stats()
     except Exception as e:
-        stats = {"total_students":0,"total_sessions":0,"active_today":0,"modality":{"visual":0,"voice":0,"text":0,"visual_pct":0},"topics":[],"media_stats":{"images_sent":0,"images_received":0,"voice_notes":0},"top_students":[]}
         print(f"Stats error: {e}")
+        stats = {"total_students":0,"total_sessions":0,"active_today":0,"modality":{"visual":0,"voice":0,"text":0,"visual_pct":0},"topics":[],"media_stats":{"images_sent":0,"images_received":0,"voice_notes":0},"top_students":[]}
+    
+    # Safe gets
+    total_students = stats.get('total_students',0)
+    total_sessions = stats.get('total_sessions',0)
+    active_today = stats.get('active_today',0)
+    modality = stats.get('modality',{})
+    media_stats = stats.get('media_stats',{})
+    topics = stats.get('topics',[])
+    top_students = stats.get('top_students',[])
+    
+    topics_html = "<br>".join([f"{t.get('topic')}: {t.get('count')}" for t in topics]) or 'No topics yet - Send WhatsApp message first'
+    students_html = "<br>".join([f"{s.get('name')} - {s.get('sessions')} sessions ({s.get('pref')})" for s in top_students]) or 'No students yet'
+    
+    visual = modality.get('visual',0)
+    visual_pct = modality.get('visual_pct',0)
+    voice = modality.get('voice',0)
+    text_m = modality.get('text',0)
+    images_sent = media_stats.get('images_sent',0)
     
     html = f"""
     <html><head><title>Day 20 Tutor Analytics</title>
@@ -93,17 +109,16 @@ async def dashboard_home():
     <h1>📊 Day 20 - Tutor Analytics Dashboard</h1>
     <p>Status: {'✅ Groq Connected' if HAS_GROQ else '⚠️ Add GROQ_API_KEY in Render ENV'}</p>
     <div class='grid'>
-        <div class='card'><div>Total Students</div><div class='num'>{stats.get('total_students',0)}</div></div>
-        <div class='card'><div>Total Sessions</div><div class='num'>{stats.get('total_sessions',0)}</div></div>
-        <div class='card'><div>Active Today</div><div class='num'>{stats.get('active_today',0)}</div></div>
-        <div class='card'><div>Images Sent</div><div class='num'>{stats.get('media_stats',{{}}).get('images_sent',0)}</div></div>
+        <div class='card'><div>Total Students</div><div class='num'>{total_students}</div></div>
+        <div class='card'><div>Total Sessions</div><div class='num'>{total_sessions}</div></div>
+        <div class='card'><div>Active Today</div><div class='num'>{active_today}</div></div>
+        <div class='card'><div>Images Sent</div><div class='num'>{images_sent}</div></div>
     </div>
     <div class='card'><h3>🎯 Modality Split</h3>
-    Visual: {stats.get('modality',{{}}).get('visual',0)} ({stats.get('modality',{{}}).get('visual_pct',0)}%) | 
-    Voice: {stats.get('modality',{{}}).get('voice',0)} | Text: {stats.get('modality',{{}}).get('text',0)}
+    Visual: {visual} ({visual_pct}%) | Voice: {voice} | Text: {text_m}
     </div>
-    <div class='card'><h3>🔥 Top Topics</h3>{'<br>'.join([f"{t['topic']}: {t['count']}" for t in stats.get('topics',[])]) or 'No topics yet - Send WhatsApp message first'}</div>
-    <div class='card'><h3>🏆 Top Students</h3>{'<br>'.join([f"{s['name']} - {s['sessions']} sessions ({s['pref']})" for s in stats.get('top_students',[])]) or 'No students yet'}</div>
+    <div class='card'><h3>🔥 Top Topics</h3>{topics_html}</div>
+    <div class='card'><h3>🏆 Top Students</h3>{students_html}</div>
     <div class='card'><a href='/stats'>View JSON API /stats</a> | <a href='/health'>Health</a></div>
     </body></html>
     """
@@ -143,12 +158,12 @@ async def twilio_webhook(request: Request):
     diagram_url=gen_diagram(user_text[:80]) if need_diagram else None
     
     if HAS_GROQ and llm:
-        prompt=f"You are Tutor. Mem: {mem_ctx} Q: {user_text} Img: {image_analysis} WantsDiag: {need_diagram} KB:{KB} No tables, *bold* not **, 3 lines max, end question."
+        prompt=f"You are Tutor. Mem: {mem_ctx} Q: {user_text} Img: {image_analysis} WantsDiag: {need_diagram} No tables, *bold* not **, 3 lines max, end question."
         try:
             resp=await llm.ainvoke(prompt); text_reply=cleaner(resp.content)
-        except: text_reply=f"Hey {profile_name}! Got your message: {user_text[:100]}"
+        except: text_reply=f"Hey {profile_name}! Got: {user_text[:100]}"
     else:
-        text_reply=f"Hey {profile_name}! Bot works but add GROQ_API_KEY in Render for AI replies. You said: {user_text[:100]}"
+        text_reply=f"Hey {profile_name}! Add GROQ_API_KEY for AI. You said: {user_text[:100]}"
     
     try:
         top=next((t for t in ["agentic","langgraph","rag","mcp"] if t in user_text.lower()), None)
