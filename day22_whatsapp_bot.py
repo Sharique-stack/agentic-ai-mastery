@@ -1,10 +1,14 @@
 # day22_whatsapp_bot.py - Day 22 Multi-Agent
+from unittest import result
+
 from fastapi import FastAPI, Request
 from fastapi.responses import PlainTextResponse, HTMLResponse, JSONResponse
 from twilio.twiml.messaging_response import MessagingResponse
 import os, re, requests, tempfile, urllib.parse, time, base64, asyncio
 from dotenv import load_dotenv
 load_dotenv()
+from day23_agents import supervisor_with_memory
+from day23_rag import get_memory_stats
 
 app = FastAPI()
 
@@ -93,6 +97,11 @@ async def stats_api(): return JSONResponse(get_monetization_stats())
 @app.get("/health")
 async def health(): return {"day":22, "status":"ok", "agents":4}
 
+@app.get("/memory/{phone}")
+async def memory_api(phone: str, q: str = "AI"):
+    from day23_rag import search_memory
+    return {"phone": phone, "query": q, "results": search_memory(phone, q)}
+
 @app.post("/twilio")
 async def twilio_webhook(request: Request):
     form = await request.form()
@@ -136,8 +145,8 @@ async def twilio_webhook(request: Request):
         if HAS_GROQ:
             level = "Beginner"
             if "advanced" in user_text.lower(): level="Advanced"
-            result = await supervisor_orchestrate(user_text, level)
-            text_reply = f"{result['explanation']}\n\n📝 {result['quiz']}"
+            result = await supervisor_with_memory(user_text, from_num, level)
+            text_reply = f"{result['explanation']}\n\n🧠 Recall: {result['past'][:120]}\n\n📝 {result['quiz']}"
             facts = result['facts']
         else:
             text_reply = f"Hey {profile_name}! Multi-agent needs GROQ_API_KEY. You said: {user_text[:100]}"
