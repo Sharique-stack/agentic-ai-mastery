@@ -9,6 +9,8 @@ from dotenv import load_dotenv
 load_dotenv()
 from day23_agents import supervisor_with_memory
 from day23_rag import get_memory_stats
+from day24_agent import supervisor_with_tools
+from day24_tools import TOOLS
 
 app = FastAPI()
 
@@ -102,6 +104,11 @@ async def memory_api(phone: str, q: str = "AI"):
     from day23_rag import search_memory
     return {"phone": phone, "query": q, "results": search_memory(phone, q)}
 
+
+# New endpoint for dashboard:
+@app.get("/tools")
+async def tools_api():
+    return {"tools": list(TOOLS.keys()), "total": len(TOOLS), "mcp_style": "function-calling", "status": "active"}
 @app.post("/twilio")
 async def twilio_webhook(request: Request):
     form = await request.form()
@@ -145,8 +152,8 @@ async def twilio_webhook(request: Request):
         if HAS_GROQ:
             level = "Beginner"
             if "advanced" in user_text.lower(): level="Advanced"
-            result = await supervisor_with_memory(user_text, from_num, level)
-            text_reply = f"{result['explanation']}\n\n🧠 Recall: {result['past'][:120]}\n\n📝 {result['quiz']}"
+            result = await supervisor_with_tools(user_text, from_num, level)
+            reply = f"{result['explanation']}\n\n🛠️ Tool: {result['tool_used']} → {result['tool_output'][:150]}\n\n📝 {result['quiz']}"
             facts = result['facts']
         else:
             text_reply = f"Hey {profile_name}! Multi-agent needs GROQ_API_KEY. You said: {user_text[:100]}"
