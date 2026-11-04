@@ -178,3 +178,13 @@ async def twilio_webhook(request: Request):
     else:
         twiml.message(text_reply + footer)
     return PlainTextResponse(str(twiml), media_type="application/xml")
+
+from fastapi import Request, Response
+
+@app.post("/whatsapp")
+async def whatsapp(request: Request):
+    form = await request.form()
+    msg = form.get("Body", "")
+    xml = f"""<?xml version="1.0" encoding="UTF-8"?>
+<Response><Message>You said: {msg} - bot is working!</Message></Response>"""
+    return Response(content=xml, media_type="text/xml")
