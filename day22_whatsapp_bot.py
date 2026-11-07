@@ -9,8 +9,10 @@ from dotenv import load_dotenv
 load_dotenv()
 from day23_agents import supervisor_with_memory
 from day23_rag import get_memory_stats
-from day24_agent import supervisor_with_tools
-from day24_tools import TOOLS
+#from day24_agent import supervisor_with_tools
+#from day24_tools import TOOLS
+from day25_agent import supervisor_with_guardrails
+from day25_eval import get_eval_stats
 
 app = FastAPI()
 
@@ -152,8 +154,8 @@ async def twilio_webhook(request: Request):
         if HAS_GROQ:
             level = "Beginner"
             if "advanced" in user_text.lower(): level="Advanced"
-            result = await supervisor_with_tools(user_text, from_num, level)
-            reply = f"{result['explanation']}\n\n🛠️ Tool: {result['tool_used']} → {result['tool_output'][:150]}\n\n📝 {result['quiz']}"
+            result = await supervisor_with_guardrails(user_text, from_num, level)
+            reply = f"{result['explanation']}\n\n🛠️ Tool: {result['tool_used']}\n⭐ Accuracy: {result['eval']['accuracy']}% | ⏱️ {result['eval']['latency_ms']}ms\n\n📝 {result['quiz']}"
             facts = result['facts']
         else:
             text_reply = f"Hey {profile_name}! Multi-agent needs GROQ_API_KEY. You said: {user_text[:100]}"
@@ -188,3 +190,12 @@ async def whatsapp(request: Request):
     xml = f"""<?xml version="1.0" encoding="UTF-8"?>
 <Response><Message>You said: {msg} - bot is working!</Message></Response>"""
     return Response(content=xml, media_type="text/xml")
+
+# New endpoints:
+@app.get("/eval")
+async def eval_api():
+    return get_eval_stats()
+
+@app.get("/tools")
+async def tools_api():
+    return {"tools": list(TOOLS.keys()), "total": len(TOOLS), "mcp_style": "function-calling", "status": "active", "guardrails": "on", "eval": get_eval_stats()}
