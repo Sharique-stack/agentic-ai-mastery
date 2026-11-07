@@ -1,0 +1,12 @@
+# render.yaml - Put in root, Render auto-detects
+services:
+    - type: web
+    name: analytics-d976
+    env: docker
+    dockerfilePath: ./Dockerfile
+    envVars:
+            - key: GROQ_API_KEY
+        sync: false
+            - key: PYTHON_VERSION
+        value: 3.11.0
+    healthCheckPath: /health
