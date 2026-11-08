@@ -13,6 +13,9 @@ from day23_rag import get_memory_stats
 #from day24_tools import TOOLS
 from day25_agent import supervisor_with_guardrails
 from day25_eval import get_eval_stats
+from day26_portfolio import get_portfolio
+from day26_health import get_health
+from day25_eval import get_eval_stats
 
 app = FastAPI()
 
@@ -111,7 +114,14 @@ async def memory_api(phone: str, q: str = "AI"):
 @app.get("/tools")
 async def tools_api():
     return {"tools": list(TOOLS.keys()), "total": len(TOOLS), "mcp_style": "function-calling", "status": "active"}
+
 @app.post("/twilio")
+
+@app.get("/interview")
+async def interview_api():
+    from day27_interview import INTERVIEW_QA
+    return INTERVIEW_QA
+
 async def twilio_webhook(request: Request):
     form = await request.form()
     body = form.get("Body","").strip()
@@ -199,3 +209,22 @@ async def eval_api():
 @app.get("/tools")
 async def tools_api():
     return {"tools": list(TOOLS.keys()), "total": len(TOOLS), "mcp_style": "function-calling", "status": "active", "guardrails": "on", "eval": get_eval_stats()}
+
+@app.get("/health")
+async def health_api():
+    return get_health()
+
+@app.get("/portfolio")
+async def portfolio_api():
+    return get_portfolio()
+
+@app.get("/")
+async def home():
+    # Portfolio landing page - replaces old dashboard text
+    return {
+        "project": "WhatsApp AI Tutor",
+        "readme": "See README.md on GitHub",
+        "demo_script": "See day27_demo_script.md - 60 sec video",
+        "interview": "/interview",
+        "live": "https://analytics-d976.onrender.com/"
+    }
