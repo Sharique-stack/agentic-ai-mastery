@@ -1,6 +1,6 @@
 # day22_whatsapp_bot.py - Day 22 Multi-Agent
 from unittest import result
-
+from day28_polish import check_rate_limit, friendly_error, format_answer, HELP_TEXT
 from fastapi import FastAPI, Request
 from fastapi.responses import PlainTextResponse, HTMLResponse, JSONResponse
 from twilio.twiml.messaging_response import MessagingResponse
