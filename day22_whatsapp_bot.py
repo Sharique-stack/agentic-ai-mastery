@@ -65,6 +65,17 @@ def gen_diagram(topic):
 
 def cleaner(t): return re.sub(r'\*\*(.*?)\*\*', r'*\1*', re.sub(r'\|.*\|','',t)).strip()[:1200]
 
+
+# Add:
+@app.get("/")
+def home():
+    return {
+        "project": "WhatsApp AI Tutor",
+        "feedback": "/feedback - See what real users said",
+        "try_feedback": "WhatsApp: 'feedback 5 Loved it!'",
+        "live": "https://analytics-d976.onrender.com/"
+    }
+    
 @app.get("/", response_class=HTMLResponse)
 async def dashboard():
     try:
